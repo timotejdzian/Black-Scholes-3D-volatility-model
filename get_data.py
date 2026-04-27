@@ -4,34 +4,30 @@ import yfinance as yf
 
 
 """
-S - spot price of the underlying asset xxx
-Strike - Strike price - user chooses (can check the strike prices from stock_info("...") function) xxx
-T - time to expiration (in years) xxx
-r - 3.70, hardcoded, the differences are for our purposes negligable xxx 
-option_type - calls/puts xxx
-market_prices - price of the option 
+S = spot price of the underlying stock
+r = risk-free rate, hard-coded, for our purposes it is sufficient
+calls_df = dataframe of call options containing contracts for every expiration 
+puts_df = same but put
 """
 
 
-def get_option_data(stock_symbol, exp_date, option_type, strike):
+def get_option_data(stock_symbol):
     stock = yf.Ticker(stock_symbol)
     S = stock.fast_info["lastPrice"]
-    chain = stock.option_chain(exp_date)
-    options = getattr(chain, option_type)
-    row = options[options["strike"] == strike]
-    row = row.iloc[0]
-    market_price = (row["bid"] + row["ask"])/2
-    T = (datetime.strptime(exp_date,"%Y-%m-%d").date()-date.today()).days/365
+    exp_dates = stock.options
+    all_calls = []
+    all_puts = []
+    for exp in exp_dates:
+        chain = stock.option_chain(exp)
+        T = (datetime.strptime(exp, "%Y-%m-%d").date()-date.today()).days/365
+        calls = chain.calls.assign(T=T, expiration=exp)
+        puts = chain.puts.assign(T=T, expiration=exp)
+        all_calls.append(calls)
+        all_puts.append(puts)
+    calls_df = pd.concat(all_calls, ignore_index=True)
+    puts_df = pd.concat(all_puts, ignore_index=True)
     r = 0.037
-    return S, strike, T, r, option_type, market_price
+    return S, r, calls_df, puts_df
 
 
-
-#Test data
-stock_symbol = "Aapl"
-exp_date ="2026-06-18"
-option_type = "calls"
-strike = 250
-
-S, strike, T, r, option_type, market_price = get_option_data(stock_symbol, exp_date, option_type, strike)
-# print(S, strike, T, r, option_type, market_price)
+S, r, calls_df, puts_df = get_option_data("Aapl")
