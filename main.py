@@ -1,9 +1,10 @@
 from bs.get_data import get_option_data
 from bs.black_scholes import add_iv, print_iv_sample
+from bs.visualisation import visualize
 
 if __name__ == "__main__":
+    
     S, r, calls_df, puts_df = get_option_data("AAPL")
-    print(f"\n[main] spot price: {S:.2f}  |  risk-free rate: {r}")
  
     calls_df = add_iv(calls_df, S, r, "call")
     puts_df = add_iv(puts_df, S, r, "put")
@@ -15,3 +16,5 @@ if __name__ == "__main__":
  
     print_iv_sample(atm_calls, "CALLS ATM")
     print_iv_sample(atm_puts, "PUTS ATM")
+
+    visualize(calls_df, S)
