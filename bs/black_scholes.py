@@ -37,7 +37,7 @@ def add_iv(df, S, r, option_type):
     df = df.copy()
  
     try:
-        df["mid_price"] = (df["bid"] + df["ask"]) / 2
+        df["mid_price"] = df["lastPrice"]
     except KeyError as e:
         print(f"[iv] ERROR - missing bid/ask columns: {e}")
         raise
