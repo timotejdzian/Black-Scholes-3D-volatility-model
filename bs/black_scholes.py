@@ -36,11 +36,12 @@ def add_iv(df, S, r, option_type):
     print(f"\n[iv] calculating IV for {len(df)} {option_type} contracts...")
     df = df.copy()
  
-    try:
-        df["mid_price"] = df["lastPrice"]
-    except KeyError as e:
-        print(f"[iv] ERROR - missing bid/ask columns: {e}")
-        raise
+    mid = (df["bid"].astype(float) + df["ask"].astype(float)) / 2
+    if "lastPrice" in df.columns:
+        last = df["lastPrice"].astype(float)
+        df["mid_price"] = mid.where(mid > 0, last)
+    else:
+        df["mid_price"] = mid
  
     df["IV"] = df.apply(
         lambda row: calc_iv(row["mid_price"], S, row["strike"], row["T"], r, option_type),
