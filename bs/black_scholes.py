@@ -97,11 +97,22 @@ def add_iv(df, S, r, option_type, q=0.0):
     """Solve IV per contract. Expects df already passed through prepare_quotes."""
     print(f"\n[iv] calculating IV for {len(df)} {option_type} contracts...")
     df = df.copy()
+<<<<<<< HEAD
     if df.empty:
         df["IV"] = pd.Series(dtype=float)
         return df
 
     has_spot_col = "spot" in df.columns
+=======
+ 
+    mid = (df["bid"].astype(float) + df["ask"].astype(float)) / 2
+    if "lastPrice" in df.columns:
+        last = df["lastPrice"].astype(float)
+        df["mid_price"] = mid.where(mid > 0, last)
+    else:
+        df["mid_price"] = mid
+ 
+>>>>>>> e48d905e4142ac55ce6c2f5971e0adc8ae647b71
     df["IV"] = df.apply(
         lambda row: calc_iv(
             row["mid_price"],

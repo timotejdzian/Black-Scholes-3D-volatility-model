@@ -7,10 +7,23 @@ from scipy.interpolate import griddata
 MIN_EXPIRIES_FOR_SURFACE = 3
 
 
+<<<<<<< HEAD
 def visualize(df, S=None, title="IV surface"):
     """
     Build the IV figure from an already-filtered, IV-solved dataframe
     (output of prepare_quotes -> add_iv, optionally stitch_otm).
+=======
+def visualize(calls_df, S):
+    calls_df = calls_df.copy()
+    calls_df["moneyness"] = calls_df["strike"] / S
+    filters = (
+        (calls_df["mid_price"] > 0)
+        & (calls_df["IV"].between(0.01, 1.3))
+        & (calls_df["T"] >= 5 / 365)
+        & (calls_df["moneyness"].between(0.8, 1.2))
+    )
+    t_calls_df = calls_df[filters].copy()
+>>>>>>> e48d905e4142ac55ce6c2f5971e0adc8ae647b71
 
     Returns a plotly figure - the caller renders it (st.plotly_chart in the
     app, fig.show() in main.py). Falls back to 2D smiles when there are too
