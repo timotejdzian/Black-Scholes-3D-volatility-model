@@ -1,4 +1,3 @@
-# bs/black_scholes.py
 import numpy as np
 import pandas as pd
 from scipy.optimize import brentq
@@ -6,7 +5,6 @@ from scipy.stats import norm
 
 
 def bs_price(S, K, T, r, sigma, option_type, q=0.0):
-    """Black-Scholes European price with continuous dividend yield q."""
     if T <= 0 or sigma <= 0:
         return np.nan
     d1 = (np.log(S / K) + (r - q + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
@@ -20,7 +18,6 @@ def bs_price(S, K, T, r, sigma, option_type, q=0.0):
 def calc_iv(market_price, S, K, T, r, option_type, q=0.0):
     if T <= 0 or market_price <= 0:
         return np.nan
-    # European lower bound (discounted intrinsic). Prices below it have no BS root.
     if option_type == "call":
         lower = max(0.0, S * np.exp(-q * T) - K * np.exp(-r * T))
     else:
@@ -33,26 +30,13 @@ def calc_iv(market_price, S, K, T, r, option_type, q=0.0):
             1e-6, 10.0, xtol=1e-6, maxiter=500,
         )
     except ValueError:
-        # f(a) and f(b) have the same sign - no root in bracket
         return np.nan
     except RuntimeError:
-        # maxiter exceeded without convergence
         return np.nan
 
 
 def prepare_quotes(df, S=None, use_last_fallback=False, max_last_age_days=5,
                    moneyness_range=(0.7, 1.3), t_range=(5 / 365, 3.0)):
-    """
-    Filter BEFORE solving IV - brentq per row is the latency bottleneck.
-
-    Price selection:
-      - mid = (bid + ask) / 2 when bid > 0 and quote not crossed  -> price_source = "mid"
-      - else, if use_last_fallback and lastPrice exists and the last trade
-        is recent enough                                          -> price_source = "last"
-      - else the row is dropped.
-
-    Spot: per-row "spot" column when present (historical mode), else scalar S (live mode).
-    """
     df = df.copy()
     n_in = len(df)
 
@@ -94,16 +78,14 @@ def prepare_quotes(df, S=None, use_last_fallback=False, max_last_age_days=5,
 
 
 def add_iv(df, S, r, option_type, q=0.0):
-    """Solve IV per contract. Expects df already passed through prepare_quotes."""
+    #Solve IV per contract. Expects df already passed through prepare_quotes
     print(f"\n[iv] calculating IV for {len(df)} {option_type} contracts...")
     df = df.copy()
-<<<<<<< HEAD
     if df.empty:
         df["IV"] = pd.Series(dtype=float)
         return df
 
     has_spot_col = "spot" in df.columns
-=======
  
     mid = (df["bid"].astype(float) + df["ask"].astype(float)) / 2
     if "lastPrice" in df.columns:
@@ -112,7 +94,6 @@ def add_iv(df, S, r, option_type, q=0.0):
     else:
         df["mid_price"] = mid
  
->>>>>>> e48d905e4142ac55ce6c2f5971e0adc8ae647b71
     df["IV"] = df.apply(
         lambda row: calc_iv(
             row["mid_price"],
@@ -132,8 +113,7 @@ def add_iv(df, S, r, option_type, q=0.0):
         print(f"[iv] {option_type} IV range - min: {iv_valid.min():.4f}, "
               f"max: {iv_valid.max():.4f}, median: {iv_valid.median():.4f}")
 
-    # reference IV: yfinance's impliedVolatility (live) or DoltHub's vol (historical,
-    # renamed to impliedVolatility in dolt_data) - cross-check against our solver
+    # reference IV: yfinance's impliedVolatility (live) or DoltHub's vol (historical renamed to impliedVolatility in dolt_data) - cross-check against our solver
     if "impliedVolatility" in df.columns:
         df["IV_ref"] = df["impliedVolatility"]
         df["IV_diff"] = df["IV"] - df["IV_ref"]
@@ -145,18 +125,6 @@ def add_iv(df, S, r, option_type, q=0.0):
 
 
 def anchor_to_forward(df, r, window=(0.95, 1.05), min_pairs=3):
-    """
-    Re-anchor a combined calls+puts chain on the forward the market itself
-    implies, per (date, expiration): F = K + e^(rT) * (C_mid - P_mid), median
-    over near-ATM pairs. Cures spot-vs-quote timing desyncs, absorbs dividends
-    (no q guessing - F contains the market's carry), and collapses the
-    call/put seam by parity construction.
-
-    Sets: moneyness = K/F (forward moneyness), spot = F * e^(-rT) (the
-    parity-consistent spot the IV solver should use with q = 0), forward,
-    forward_source ("parity", or "spot" fallback when too few pairs).
-    Original close is kept as spot_close.
-    """
     df = df.copy()
     mid_ok = (df["bid"] > 0) & (df["ask"] > 0) & (df["bid"] <= df["ask"])
     df["_mid"] = np.where(mid_ok, (df["bid"] + df["ask"]) / 2, np.nan)
@@ -199,7 +167,7 @@ def anchor_to_forward(df, r, window=(0.95, 1.05), min_pairs=3):
 
 
 def stitch_otm(calls_df, puts_df):
-    """OTM surface: puts below spot, calls at/above spot. Minimal early-exercise premium."""
+    #OTM surface: puts below spot, calls at/above spot. Minimal early-exercise premium.
     otm_calls = calls_df[calls_df["moneyness"] >= 1.0]
     otm_puts = puts_df[puts_df["moneyness"] < 1.0]
     out = pd.concat([otm_puts, otm_calls], ignore_index=True)
