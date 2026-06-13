@@ -1,4 +1,3 @@
-# bs/get_data.py
 import sys
 import time
 from datetime import datetime, timezone
@@ -14,7 +13,6 @@ puts_df = same but put
 """
 
 DEFAULT_R = 0.037
-# US equity options expire 16:00 New York ~ 20:00 UTC (off 1h around DST; irrelevant here)
 EXPIRY_HOUR_UTC = 20
 
 
@@ -38,7 +36,6 @@ def get_option_data(stock_symbol):
                 time.sleep(2 ** attempt)
         if chain is None:
             continue
-        # seconds-based T: days/365 truncates to 0 on expiration day and BS divides by sqrt(T)
         exp_dt = datetime.strptime(exp, "%Y-%m-%d").replace(hour=EXPIRY_HOUR_UTC, tzinfo=timezone.utc)
         T = (exp_dt - now).total_seconds() / (365 * 24 * 3600)
         all_calls.append(chain.calls.assign(T=T, expiration=exp))
