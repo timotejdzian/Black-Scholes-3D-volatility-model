@@ -41,7 +41,6 @@ Every surface goes through the same steps regardless of source:
 | `bs/visualisation.py` | Solved dataframe to a Plotly figure: 3D surface. |
 | `app.py` | Streamlit shell. Sidebar params (r, q) and filters, three cache layers, a log panel capturing each step's output. |
 | `main.py` | The same pipeline without the interactive app. |
-| `check_forward.py` | Standalone put-call parity diagnostic for a cached day file. |
 
 ## Analysis
 
