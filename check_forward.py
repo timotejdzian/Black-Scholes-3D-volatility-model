@@ -1,13 +1,4 @@
-# check_forward.py
-"""
-Put-call parity forward check against a cached DoltHub day file.
-
-Run from the project root (the folder containing app.py and bs/):
-    python check_forward.py 2026-06-05 199.50
-where the second argument is the spot the app showed for that date.
-Compare against a clean day:
-    python check_forward.py 2026-05-29 <spot shown for that date>
-"""
+#Put-call parity forward check against a cached DoltHub day file.
 import sys
 import numpy as np
 import pandas as pd
